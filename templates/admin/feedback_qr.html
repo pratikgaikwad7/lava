@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback QR Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #160272;
+            --secondary-color: #006400;
+            --accent-color: #8B008B;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --orange-color: #FF9800;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 20px;
+        }
+        
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .page-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 12px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            padding: 10px 12px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(22, 2, 114, 0.25);
+        }
+        
+        .btn {
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #0d0148;
+            border-color: #0d0148;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #004d00;
+            border-color: #004d00;
+        }
+        
+        .btn-warning {
+            background-color: var(--orange-color);
+            border-color: var(--orange-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e68900;
+            border-color: #e68900;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .list-group-item {
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .list-group-item.selected {
+            background-color: #e7f5ff;
+            border-color: #b8daff;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .qr-image {
+            max-width: 300px;
+            margin: 20px auto;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #666;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            z-index: 1;
+        }
+        
+        .step.active .step-number {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .step-title {
+            font-size: 14px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .step.active .step-title {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .step.completed .step-title {
+            color: var(--secondary-color);
+        }
+        
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #e0e0e0;
+            z-index: 0;
+        }
+        
+        .step:last-child::after {
+            display: none;
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .program-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .program-card.selected {
+            border: 2px solid #0d6efd;
+            background-color: #f0f8ff;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .action-buttons button {
+            margin: 0 10px;
+        }
+        
+        .no-programs {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+        
+        .qr-type-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-individual {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .badge-clubbed {
+            background-color: var(--orange-color);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .step-title {
+                font-size: 12px;
+            }
+            
+            .step::after {
+                left: 60%;
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="page-header">
+            <h1 class="h3 mb-0"><i class="bi bi-qr-code me-2"></i>Feedback QR Code Generator</h1>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-title">Select Date</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-title">Choose Programs</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-title">Generate QR</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Date Selection -->
+        <div id="dateSelectionStep" class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Select Date</h5>
+            </div>
+            <div class="card-body">
+                <form id="dateForm">
+                    <div class="mb-4">
+                        <label for="datePicker" class="form-label">Choose a date to view scheduled training programs:</label>
+                        <input type="date" class="form-control" id="datePicker" name="selected_date" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Fetch Programs
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Step 2: Program Selection -->
+        <div id="programSelectionStep" class="card" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Programs on <span id="selectedDateDisplay"></span></h5>
+            </div>
+            <div class="card-body">
+                <div class="loading-spinner" id="programsLoading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading programs...</p>
+                </div>
+                
+                <div id="singleProgramAlert" class="alert alert-info" style="display: none;">
+                    Only one program scheduled for this day. You can generate a QR code for this program.
+                </div>
+                
+                <div id="multipleProgramsAlert" class="alert alert-warning" style="display: none;">
+                    Multiple programs scheduled for this day. You can generate individual QR codes or combine multiple programs into one QR code.
+                </div>
+                
+                <div class="mb-3">
+                    <p class="text-muted">Select one or more programs to generate feedback QR codes:</p>
+                </div>
+                <div class="row" id="programsList">
+                    <!-- Programs will be loaded here -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="button" id="backToDate" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back
+                    </button>
+                    <button type="button" id="generateSingleQR" class="btn btn-success" style="display: none;">
+                        <i class="fas fa-qrcode me-2"></i>Generate Individual QR Code
+                    </button>
+                    <button type="button" id="generateClubbedQR" class="btn btn-warning" style="display: none;">
+                        <i class="fas fa-layer-group me-2"></i>Generate Clubbed QR Code
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 3: QR Code Display -->
+        <div id="qrDisplayStep" class="card" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>QR Code Generated</h5>
+            </div>
+            <div class="card-body">
+                <div class="qr-container">
+                    <div id="qrInfo" class="mb-3">
+                        <!-- QR info will be displayed here -->
+                    </div>
+                    <div class="my-4 position-relative">
+                        <span id="qrTypeBadge" class="qr-type-badge"></span>
+                        <img id="qrImage" src="" alt="Feedback QR Code" class="qr-image">
+                    </div>
+                    <div class="mt-3 d-flex justify-content-center gap-2">
+                        <a id="downloadLink" href="" download="" class="btn btn-primary">
+                            <i class="bi bi-download me-2"></i>Download QR Code
+                        </a>
+                        <button id="generateAnother" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Generate Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Flash Messages Container -->
+        <div id="flashMessages"></div>
+    </div>
+
+    <!-- QR Code Preview Modal -->
+    <div class="modal fade" id="qrPreviewModal" tabindex="-1" aria-labelledby="qrPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrPreviewModalLabel">QR Code Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="qrCodeContainer" class="qr-preview mb-3">
+                        <!-- QR code will be displayed here -->
+                    </div>
+                    <div id="qrModalInfo" class="mb-3">
+                        <!-- QR code info will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a id="downloadQR" class="btn btn-primary" download>Download QR Code</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('datePicker').value = today;
+            
+            // Elements
+            const dateForm = document.getElementById('dateForm');
+            const datePicker = document.getElementById('datePicker');
+            const programsLoading = document.getElementById('programsLoading');
+            const programSelectionStep = document.getElementById('programSelectionStep');
+            const dateSelectionStep = document.getElementById('dateSelectionStep');
+            const qrDisplayStep = document.getElementById('qrDisplayStep');
+            const selectedDateDisplay = document.getElementById('selectedDateDisplay');
+            const programsList = document.getElementById('programsList');
+            const backToDateBtn = document.getElementById('backToDate');
+            const generateSingleQRBtn = document.getElementById('generateSingleQR');
+            const generateClubbedQRBtn = document.getElementById('generateClubbedQR');
+            const generateAnotherBtn = document.getElementById('generateAnother');
+            const singleProgramAlert = document.getElementById('singleProgramAlert');
+            const multipleProgramsAlert = document.getElementById('multipleProgramsAlert');
+            const qrPreviewModal = new bootstrap.Modal(document.getElementById('qrPreviewModal'));
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const qrModalInfo = document.getElementById('qrModalInfo');
+            const downloadQRBtn = document.getElementById('downloadQR');
+            const qrTypeBadge = document.getElementById('qrTypeBadge');
+            
+            // Selected programs
+            let selectedPrograms = [];
+            
+            // Date form submission
+            dateForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const date = datePicker.value;
+                if (!date) {
+                    showAlert('Please select a date', 'warning');
+                    return;
+                }
+                
+                // Show loading spinner
+                programsLoading.style.display = 'block';
+                programsList.innerHTML = '';
+                
+                // Update step indicator
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step2').classList.add('active');
+                
+                // Fetch programs for the selected date
+                fetch(`/get_programs_by_date?date=${date}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading spinner
+                        programsLoading.style.display = 'none';
+                        
+                        if (data.error) {
+                            showAlert(data.error, 'danger');
+                            return;
+                        }
+                        
+                        // Clear previous programs and selections
+                        programsList.innerHTML = '';
+                        selectedPrograms = [];
+                        
+                        if (data.programs.length === 0) {
+                            programsList.innerHTML = '<div class="col-12"><div class="alert alert-info">No programs found for the selected date.</div></div>';
+                        } else {
+                            // Show appropriate alerts based on number of programs
+                            if (data.programs.length === 1) {
+                                singleProgramAlert.style.display = 'block';
+                                multipleProgramsAlert.style.display = 'none';
+                            } else {
+                                singleProgramAlert.style.display = 'none';
+                                multipleProgramsAlert.style.display = 'block';
+                            }
+                            
+                            // Create program cards
+                            data.programs.forEach(program => {
+                                const programCard = document.createElement('div');
+                                programCard.className = 'col-md-6 mb-4';
+                                programCard.innerHTML = `
+                                    <div class="card program-card h-100" data-id="${program.id}">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${program.name}</h5>
+                                            <p class="card-text"><strong>Type:</strong> ${program.type}</p>
+                                            <p class="card-text"><strong>Location:</strong> ${program.location}</p>
+                                            <p class="card-text"><strong>Time:</strong> ${program.start_time} - ${program.end_time}</p>
+                                            ${program.trainers && program.trainers.length > 0 ? `
+                                            <p class="card-text"><strong>Trainers:</strong> ${program.trainers.join(', ')}</p>
+                                            ` : ''}
+                                            <div class="form-check mt-3">
+                                                <input class="form-check-input program-checkbox" type="checkbox" value="${program.id}" id="program${program.id}">
+                                                <label class="form-check-label" for="program${program.id}">
+                                                    Select for QR generation
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                programsList.appendChild(programCard);
+                                
+                                // Add click event to the card
+                                const card = programCard.querySelector('.program-card');
+                                const checkbox = programCard.querySelector('.program-checkbox');
+                                
+                                card.addEventListener('click', function(e) {
+                                    if (e.target.type !== 'checkbox') {
+                                        checkbox.checked = !checkbox.checked;
+                                    }
+                                    updateProgramSelection(program.id, checkbox.checked);
+                                });
+                                
+                                checkbox.addEventListener('change', function() {
+                                    updateProgramSelection(program.id, this.checked);
+                                });
+                            });
+                        }
+                        
+                        // Format date for display
+                        selectedDateDisplay.textContent = new Date(date).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        
+                        // Show program selection step
+                        dateSelectionStep.style.display = 'none';
+                        programSelectionStep.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('Error fetching programs', 'danger');
+                        programsLoading.style.display = 'none';
+                    });
+            });
+            
+            // Back to date selection button
+            backToDateBtn.addEventListener('click', function() {
+                // Update step indicator
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step1').classList.add('active');
+                document.getElementById('step1').classList.remove('completed');
+                
+                programSelectionStep.style.display = 'none';
+                dateSelectionStep.style.display = 'block';
+            });
+            
+            // Update program selection
+            function updateProgramSelection(programId, isSelected) {
+                const programCard = document.querySelector(`.program-card[data-id="${programId}"]`);
+                
+                if (isSelected) {
+                    programCard.classList.add('selected');
+                    if (!selectedPrograms.includes(programId)) {
+                        selectedPrograms.push(programId);
+                    }
+                } else {
+                    programCard.classList.remove('selected');
+                    selectedPrograms = selectedPrograms.filter(id => id !== programId);
+                }
+                
+                // Update action buttons based on selection
+                if (selectedPrograms.length === 0) {
+                    generateSingleQRBtn.style.display = 'none';
+                    generateClubbedQRBtn.style.display = 'none';
+                } else if (selectedPrograms.length === 1) {
+                    generateSingleQRBtn.style.display = 'inline-block';
+                    generateClubbedQRBtn.style.display = 'none';
+                } else {
+                    generateSingleQRBtn.style.display = 'none';
+                    generateClubbedQRBtn.style.display = 'inline-block';
+                }
+            }
+            
+            // Generate individual QR code
+            generateSingleQRBtn.addEventListener('click', function() {
+                if (selectedPrograms.length !== 1) return;
+                
+                const programId = selectedPrograms[0];
+                const programCard = document.querySelector(`.program-card[data-id="${programId}"]`);
+                const programName = programCard.querySelector('.card-title').textContent;
+                
+                // Show loading indicator
+                generateSingleQRBtn.disabled = true;
+                generateSingleQRBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+                
+                // Make AJAX call to generate QR code
+                const formData = new FormData();
+                formData.append('program_id', programId);
+                
+                fetch('/generate_feedback_qr', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    generateSingleQRBtn.disabled = false;
+                    generateSingleQRBtn.innerHTML = '<i class="fas fa-qrcode me-2"></i>Generate Individual QR Code';
+                    
+                    if (data.error) {
+                        showAlert(data.error, 'danger');
+                        return;
+                    }
+                    
+                    // Show QR preview
+                    showQRPreview(data.program_name, 'individual', programId, data.qr_url);
+                })
+                .catch(error => {
+                    generateSingleQRBtn.disabled = false;
+                    generateSingleQRBtn.innerHTML = '<i class="fas fa-qrcode me-2"></i>Generate Individual QR Code';
+                    console.error('Error generating QR code:', error);
+                    showAlert('Error generating QR code. Please try again.', 'danger');
+                });
+            });
+            
+            // Generate clubbed QR code
+            generateClubbedQRBtn.addEventListener('click', function() {
+                if (selectedPrograms.length < 2) {
+                    showAlert('Please select at least 2 programs for clubbed QR code', 'warning');
+                    return;
+                }
+                
+                const programIds = selectedPrograms.join(',');
+                const programNames = [];
+                selectedPrograms.forEach(id => {
+                    const programCard = document.querySelector(`.program-card[data-id="${id}"]`);
+                    const programName = programCard.querySelector('.card-title').textContent;
+                    programNames.push(programName);
+                });
+                
+                // Show loading indicator
+                generateClubbedQRBtn.disabled = true;
+                generateClubbedQRBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+                
+                // Make AJAX call to generate QR code
+                const formData = new FormData();
+                formData.append('program_ids', programIds);
+                
+                fetch('/generate_clubbed_feedback_qr', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    generateClubbedQRBtn.disabled = false;
+                    generateClubbedQRBtn.innerHTML = '<i class="fas fa-layer-group me-2"></i>Generate Clubbed QR Code';
+                    
+                    if (data.error) {
+                        showAlert(data.error, 'danger');
+                        return;
+                    }
+                    
+                    // Show QR preview
+                    showQRPreview(data.program_names, 'clubbed', programIds, data.qr_url);
+                })
+                .catch(error => {
+                    generateClubbedQRBtn.disabled = false;
+                    generateClubbedQRBtn.innerHTML = '<i class="fas fa-layer-group me-2"></i>Generate Clubbed QR Code';
+                    console.error('Error generating clubbed QR code:', error);
+                    showAlert('Error generating QR code. Please try again.', 'danger');
+                });
+            });
+            
+            // Show QR code preview
+            function showQRPreview(programName, type, id, qrUrl) {
+                // Clear previous QR code
+                qrCodeContainer.innerHTML = '';
+                
+                // Create QR code image
+                const qrImage = document.createElement('img');
+                qrImage.src = qrUrl;
+                qrImage.className = 'img-fluid';
+                qrImage.alt = 'QR Code';
+                qrCodeContainer.appendChild(qrImage);
+                
+                // Set QR info
+                qrModalInfo.innerHTML = `
+                    <h6>QR Code Details</h6>
+                    <p><strong>Program(s):</strong> ${programName}</p>
+                    <p><strong>Type:</strong> ${type === 'individual' ? 'Individual Program' : 'Clubbed Programs'}</p>
+                    <p><strong>ID:</strong> ${id}</p>
+                `;
+                
+                // Set download link
+                downloadQRBtn.href = qrUrl;
+                downloadQRBtn.download = `feedback-qr-${type}-${id}.png`;
+                
+                // Update step indicator
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step2').classList.add('completed');
+                document.getElementById('step3').classList.add('active');
+                
+                // Show modal
+                qrPreviewModal.show();
+            }
+            
+            // Generate another QR code button
+            generateAnotherBtn.addEventListener('click', function() {
+                // Reset form and go back to date selection
+                dateForm.reset();
+                datePicker.value = today;
+                programsList.innerHTML = '';
+                selectedPrograms = [];
+                
+                // Reset step indicator
+                document.getElementById('step1').classList.add('active');
+                document.getElementById('step1').classList.remove('completed');
+                document.getElementById('step2').classList.remove('active', 'completed');
+                document.getElementById('step3').classList.remove('active', 'completed');
+                
+                // Hide QR display step and show date selection step
+                qrDisplayStep.style.display = 'none';
+                dateSelectionStep.style.display = 'block';
+                programSelectionStep.style.display = 'none';
+                
+                // Reset action buttons
+                generateSingleQRBtn.style.display = 'none';
+                generateClubbedQRBtn.style.display = 'none';
+            });
+            
+            // Function to show alert messages
+            function showAlert(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                const flashContainer = document.getElementById('flashMessages');
+                flashContainer.innerHTML = '';
+                flashContainer.appendChild(alertDiv);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => {
+                        if (flashContainer.contains(alertDiv)) {
+                            flashContainer.removeChild(alertDiv);
+                        }
+                    }, 150);
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

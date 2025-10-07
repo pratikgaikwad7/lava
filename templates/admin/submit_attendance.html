@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #0066cc;
+            --accent-color: #ff6b00;
+            --accent-light: #ff8c33;
+            --light-bg: #f8fafc;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, #004080 100%);
+            --gradient-secondary: linear-gradient(135deg, var(--secondary-color) 0%, #0080ff 100%);
+            --gradient-accent: linear-gradient(135deg, var(--accent-color) 0%, #ff8c33 100%);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 10px;
+        }
+        
+        .attendance-container {
+            max-width: 1000px;
+            margin: 10px auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .form-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+            padding-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-logo { 
+            width: 70px;
+            height: 70px;
+            background: white url('/static/image/logo1.jpeg') center/100% no-repeat;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--card-shadow);
+            border: 3px solid #fff;
+            overflow: hidden;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+        
+        .header-logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .form-header h3 {
+            font-size: 18px;
+            margin-bottom: 6px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+        }
+        
+        .form-header p {
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .form-section {
+            padding: 15px;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 3px solid var(--secondary-color);
+            position: relative;
+            font-weight: 600;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+        
+        .section-title i {
+            margin-right: 8px;
+            color: var(--secondary-color);
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .detail-card {
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            margin-bottom: 10px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 3px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: #495057;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .faculty-badge {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 50px;
+            padding: 0.6rem 1.2rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .faculty-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary-color);
+        }
+        
+        .faculty-badge i {
+            margin-right: 0.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .submit-btn {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1 0 130px;
+            max-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: var(--gradient-secondary);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+            background: var(--gradient-primary);
+        }
+        
+        .form-control, .input-group-text {
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: #fff;
+        }
+        
+        .form-control:focus, .input-group:focus-within .input-group-text {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+        }
+        
+        .input-group-text {
+            background-color: #e9ecef;
+            border-right: none;
+        }
+        
+        .input-group .form-control {
+            border-left: none;
+        }
+        
+        #verifyPerNoBtn {
+            border-radius: 8px;
+            background: var(--gradient-secondary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+        
+        #verifyPerNoBtn:hover {
+            background: var(--gradient-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .form-header {
+                padding: 15px 10px 25px;
+            }
+            
+            .form-header h3 {
+                font-size: 20px;
+            }
+            
+            .form-header p {
+                font-size: 16px;
+            }
+        }
+        
+        .success-modal .modal-header {
+            background-color: var(--secondary-color);
+            color: white;
+            border-bottom: none;
+        }
+        
+        .success-modal .fa-check-circle {
+            font-size: 4rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .success-modal .modal-content {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        .success-modal .modal-body {
+            padding: 2rem;
+        }
+        
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 11px;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-section {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .form-section:nth-child(2) { animation-delay: 0.1s; }
+        .form-section:nth-child(3) { animation-delay: 0.2s; }
+        
+        /* Mobile-first approach with responsive breakpoints */
+        @media (min-width: 576px) {
+            body {
+                padding: 15px;
+            }
+            
+            .attendance-container {
+                margin: 15px auto;
+            }
+            
+            .form-header {
+                padding: 20px 15px 35px;
+            }
+            
+            .form-header h3 {
+                font-size: 20px;
+            }
+            
+            .form-header p {
+                font-size: 16px;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            .form-header {
+                padding: 25px 20px 40px;
+            }
+            
+            .form-header h3 {
+                font-size: 24px;
+            }
+            
+            .form-header p {
+                font-size: 18px;
+            }
+            
+            .form-section {
+                padding: 25px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .detail-value {
+                font-size: 14px;
+            }
+            
+            .header-logo {
+                width: 90px;
+                height: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="attendance-container">
+        <!-- Header -->
+        <div class="form-header">
+            <div class="header-content">
+                <div class="header-logo">
+                </div>
+                <h3><i class="bi bi-calendar-check"></i> Training Attendance System</h3>
+                <p class="mb-0">(Digital Attendance System)</p>
+            </div>
+        </div>
+        
+        <!-- Program Information Section -->
+        <div class="form-section">
+            <h4 class="section-title"><i class="bi bi-journal-text"></i> Program Details</h4>
+            
+            <!-- Main Program Info -->
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <div class="detail-label">Training Name</div>
+                    <div class="detail-value" id="training-name">{{ program.training_name }}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">Location</div>
+                    <div class="detail-value">{{ program.location_hall }}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">Start Date</div>
+                    <div class="detail-value">{{ program.start_date }}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">End Date</div>
+                    <div class="detail-value">{{ program.end_date }}</div>
+                </div>
+            </div>
+            
+            <!-- Faculty Section -->
+            <div class="mt-4">
+                <h5 class="mb-3"><i class="bi bi-people-fill"></i> Faculty Members</h5>
+                <div>
+                    {% if program.faculty_1 %}
+                    <span class="faculty-badge"><i class="fas fa-user-check me-2"></i>{{ program.faculty_1 }}</span>
+                    {% endif %}
+                    {% if program.faculty_2 %}
+                    <span class="faculty-badge"><i class="fas fa-user-check me-2"></i>{{ program.faculty_2 }}</span>
+                    {% endif %}
+                    {% if program.faculty_3 %}
+                    <span class="faculty-badge"><i class="fas fa-user-check me-2"></i>{{ program.faculty_3 }}</span>
+                    {% endif %}
+                    {% if program.faculty_4 %}
+                    <span class="faculty-badge"><i class="fas fa-user-check me-2"></i>{{ program.faculty_4 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Form -->
+        <form id="attendanceForm" class="form-section">
+            <!-- FIXED: Use program.program_id instead of program.id -->
+            <input type="hidden" id="program_id" name="program_id" value="{{ program.program_id }}">
+            <input type="hidden" id="training_name" name="training_name" value="{{ program.training_name }}">
+            <input type="hidden" id="location_hall" name="location_hall" value="{{ program.location_hall }}">
+            <input type="hidden" id="tni_status" name="tni_status" value="{{ program.tni_status }}">
+            <input type="hidden" id="pmo_training_category" name="pmo_training_category" value="{{ program.pmo_training_category }}">
+            <input type="hidden" id="pl_category" name="pl_category" value="{{ program.pl_category }}">
+            <input type="hidden" id="brsr_sq_123_category" name="brsr_sq_123_category" value="{{ program.brsr_sq_123_category }}">
+            <input type="hidden" id="program_type" name="program_type" value="{{ program.program_type }}">
+            <input type="hidden" id="start_date" name="start_date" value="{{ program.start_date }}">
+            <input type="hidden" id="end_date" name="end_date" value="{{ program.end_date }}">
+            <input type="hidden" id="start_time" name="start_time" value="{{ program.start_time }}">
+            <input type="hidden" id="end_time" name="end_time" value="{{ program.end_time }}">
+            <input type="hidden" id="learning_hours" name="learning_hours" value="{{ program.learning_hours }}">
+            <input type="hidden" id="calendar_month" name="calendar_month" value="{{ program.calendar_month }}">
+            <input type="hidden" id="month_report_pmo_21_20" name="month_report_pmo_21_20" value="{{ program.month_report_pmo_21_20 }}">
+            <input type="hidden" id="month_cd_key_26_25" name="month_cd_key_26_25" value="{{ program.month_cd_key_26_25 }}">
+            <input type="hidden" id="faculty_1" name="faculty_1" value="{{ program.faculty_1 }}">
+            <input type="hidden" id="faculty_2" name="faculty_2" value="{{ program.faculty_2 }}">
+            <input type="hidden" id="faculty_3" name="faculty_3" value="{{ program.faculty_3 }}">
+            <input type="hidden" id="faculty_4" name="faculty_4" value="{{ program.faculty_4 }}">
+            <input type="hidden" id="qr_code" name="qr_code" value="{{ request.args.get('qr_code', '') }}">
+            <input type="hidden" id="current_day" name="current_day" value="{{ program.current_day }}">
+            
+            <!-- Employee Verification -->
+            <h4 class="section-title"><i class="bi bi-person-badge"></i> प्रशिक्षणार्थ्याची माहिती / Employee Verification</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="per_no" class="form-label">टिकीट क्र. / Employee Ticket No.:</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" class="form-control" id="per_no" name="per_no" placeholder="Enter PER number" required>
+                            <button class="btn" type="button" id="verifyPerNoBtn">
+                                <i class="fas fa-search"></i>
+                                <span id="verifyText">Verify</span>
+                                <span id="verifySpinner" class="spinner-border spinner-border-sm loading-spinner" role="status"></span>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="perNoError"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Employee Details (Dynamic) -->
+            <div id="employeeSection" style="display: none;">
+                <h5 class="mt-4 mb-3"><i class="bi bi-person-lines-fill"></i> Employee Details</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-card mb-3">
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-value" id="participants_name"></div>
+                        </div>
+                        <div class="detail-card mb-3">
+                            <div class="detail-label">BC Number</div>
+                            <div class="detail-value" id="bc_no"></div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-label">Gender</div>
+                            <div class="detail-value" id="gender"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-card mb-3">
+                            <div class="detail-label">Employee Group</div>
+                            <div class="detail-value" id="employee_group"></div>
+                        </div>
+                        <div class="detail-card mb-3">
+                            <div class="detail-label">Department</div>
+                            <div class="detail-value" id="department"></div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-label">Factory</div>
+                            <div class="detail-value" id="factory"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Recorder Information -->
+            <div class="row">
+                <!-- Mobile Number -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="mobile_no" class="form-label">Employee Mobile Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text">+91</span>
+                            <input type="tel" class="form-control" id="mobile_no" name="mobile_no" 
+                                   placeholder="Enter 10-digit mobile number"
+                                   pattern="[6-9]\d{9}" maxlength="10" required>
+                        </div>
+                        <div class="invalid-feedback" id="mobileError"></div>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Employee Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="Enter your email address">
+                        </div>
+                        <div class="invalid-feedback" id="emailError"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Name (Attendance Recorder) -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="cordi_name" class="form-label">Coordinator Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="cordi_name" name="cordi_name" required>
+                        </div>
+                        <div class="invalid-feedback" id="cordiNameError"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submission -->
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-check-circle"></i> <span id="submitText">Submit Attendance</span>
+                    <span id="submitSpinner" class="spinner-border spinner-border-sm loading-spinner" role="status"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade success-modal" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Success!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4 class="mb-3">Attendance Submitted Successfully</h4>
+                    <div id="submissionDetails">
+                        <div class="text-start">
+                            <p><strong>Employee:</strong> <span id="modal-employee-name"></span></p>
+                            <p><strong>PER No:</strong> <span id="modal-per-no"></span></p>
+                            <p><strong>Training:</strong> <span id="modal-training-name"></span></p>
+                            <p><strong>Time:</strong> <span id="modal-time"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+ $(document).ready(function() {
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    $('#per_no').focus();
+
+    // Debug: Check if program_id is properly set
+    console.log("Program ID from form:", $('#program_id').val());
+
+    // Verify PER Number
+    $('#verifyPerNoBtn').click(function() {
+        const perNo = $('#per_no').val().trim();
+        if (!perNo) {
+            showError('per_no', 'PER number is required');
+            return;
+        }
+
+        toggleLoading('verify', true);
+        clearError('per_no');
+
+        $.ajax({
+            url: '/attendance/check_per_no',
+            type: 'POST',
+            data: { per_no: perNo },
+            success: (response) => {
+                toggleLoading('verify', false);
+                if (response.error) {
+                    showError('per_no', response.error);
+                    $('#employeeSection').hide();
+                } else {
+                    populateEmployeeDetails(response);
+                    $('#employeeSection').slideDown();
+                }
+            },
+            error: (xhr) => {
+                toggleLoading('verify', false);
+                showError('per_no', 'Server error: ' + xhr.statusText);
+                $('#employeeSection').hide();
+            }
+        });
+    });
+
+    // Mobile number validation
+    $('#mobile_no').on('input', function() {
+        const mobile = $(this).val();
+        if (mobile.length > 0 && !/^[6-9]\d{9}$/.test(mobile)) {
+            showError('mobile_no', 'Invalid mobile number');
+        } else {
+            clearError('mobile_no');
+        }
+    });
+
+    // Email validation
+    $('#email').on('input', function() {
+        const email = $(this).val();
+        if (email.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+            showError('email', 'Invalid email format');
+        } else {
+            clearError('email');
+        }
+    });
+
+    // Form submission
+    $('#attendanceForm').submit(function(e) {
+        e.preventDefault();
+
+        let isValid = true;
+
+        // Validate PER Number
+        if (!$('#per_no').val().trim()) {
+            showError('per_no', 'PER number is required');
+            isValid = false;
+        }
+
+        // Validate Attendance Recorder Name
+        if (!$('#cordi_name').val().trim()) {
+            showError('cordi_name', 'Coordinator name is required');
+            isValid = false;
+        }
+
+        // Validate Mobile
+        const mobile = $('#mobile_no').val();
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+            showError('mobile_no', 'Invalid mobile number');
+            isValid = false;
+        }
+
+        // Validate Email (optional)
+        const email = $('#email').val();
+        if (email.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+            showError('email', 'Invalid email format');
+            isValid = false;
+        }
+
+        // FIXED: Validate Program ID
+        const programId = $('#program_id').val();
+        if (!programId) {
+            alert('Program ID is missing. Please refresh the page and try again.');
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
+        toggleLoading('submit', true);
+
+        // Prepare form data with consistent field names
+        const formData = {
+            per_no: $('#per_no').val(),
+            mobile_no: mobile,
+            email: email,
+            program_id: programId,  // FIXED: Use the validated programId
+            current_day: $('#current_day').val(),
+            
+            // Employee details
+            participants_name: $('#participants_name').text(),
+            bc_no: $('#bc_no').text(),
+            gender: $('#gender').text(),
+            employee_group: $('#employee_group').text(),
+            department: $('#department').text(),
+            factory: $('#factory').text(),
+            
+            // Program details
+            training_name: $('#training_name').val(),
+            location_hall: $('#location_hall').val(),
+            cordi_name: $('#cordi_name').val(),
+            start_date: $('#start_date').val(),
+            end_date: $('#end_date').val(),
+            start_time: $('#start_time').val(),
+            end_time: $('#end_time').val(),
+            calendar_month: $('#calendar_month').val(),
+            month_report_pmo_21_20: $('#month_report_pmo_21_20').val(),
+            month_cd_key_26_25: $('#month_cd_key_26_25').val(),
+            
+            // Additional fields
+            tni_status: $('#tni_status').val(),
+            program_type: $('#program_type').val(),
+            qr_code: $('#qr_code').val() || ''
+        };
+
+        console.log("Submitting attendance data:", formData);
+
+        $.ajax({
+            url: '/attendance/submit_attendance',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: (response) => {
+                toggleLoading('submit', false);
+                if (response.success) {
+                    showSuccessModal(response, formData);
+                    resetForm();
+                } else if (response.warning) {
+                    alert(response.warning); // For duplicate attendance
+                } else {
+                    showError('submit', response.error || 'Submission failed');
+                }
+            },
+            error: (xhr) => {
+                toggleLoading('submit', false);
+                const errorMsg = xhr.responseJSON?.error || 'Server error';
+                console.error("Attendance submission error:", errorMsg);
+                showError('submit', errorMsg);
+            }
+        });
+    });
+
+    function toggleLoading(type, isLoading) {
+        if (type === 'verify') {
+            $('#verifyText').toggle(!isLoading);
+            $('#verifySpinner').toggle(isLoading);
+            $('#verifyPerNoBtn').prop('disabled', isLoading);
+        } else {
+            $('#submitText').toggle(!isLoading);
+            $('#submitSpinner').toggle(isLoading);
+            $('#submitBtn').prop('disabled', isLoading);
+        }
+    }
+
+    function showError(field, message) {
+        $(`#${field}`).addClass('is-invalid');
+        $(`#${field}Error`).text(message).show();
+    }
+
+    function clearError(field) {
+        $(`#${field}`).removeClass('is-invalid');
+        $(`#${field}Error`).hide();
+    }
+
+    function populateEmployeeDetails(data) {
+        $('#participants_name').text(data.participants_name || 'N/A');
+        $('#bc_no').text(data.bc_no || 'N/A');
+        $('#gender').text(data.gender || 'N/A');
+        $('#employee_group').text(data.employee_group || 'N/A');
+        $('#department').text(data.department || 'N/A');
+        $('#factory').text(data.factory || 'N/A');
+        clearError('per_no');
+    }
+
+    function showSuccessModal(response, formData) {
+        $('#modal-employee-name').text(formData.participants_name);
+        $('#modal-per-no').text(formData.per_no);
+        $('#modal-training-name').text(formData.training_name);
+        $('#modal-time').text(new Date().toLocaleString());
+        
+        successModal.show();
+    }
+
+    function resetForm() {
+        $('#per_no').val('');
+        $('#employeeSection').hide();
+        $('#cordi_name').val('');
+        $('#mobile_no').val('');
+        $('#email').val('');
+        $('#per_no').focus();
+    }
+});
+</script>
+</body>
+</html>

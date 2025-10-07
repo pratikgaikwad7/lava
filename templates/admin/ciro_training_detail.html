@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tata Motors - Training Feedback System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #003366;">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='image.png') }}" alt="Tata Motors Logo" height="40">
+                Tata Motors - Training Feedback System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ciro.dashboard') }}">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Training Programs Selector -->
+        <div class="card shadow mb-4">
+            <div class="card-header" style="background-color: #003366; color: white;">
+                <h4 class="mb-0">Training Programs</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="trainingSelect" class="form-label">Select Training Program:</label>
+                            <select class="form-select" id="trainingSelect" onchange="location.href=this.value;">
+                                {% for program in all_programs %}
+                                <option value="{{ url_for('ciro.training_detail', program_title=program.program_title, program_date=program.program_date.strftime('%Y-%m-%d')) }}" 
+                                        {% if program.program_title == session.program_title and program.program_date == session.program_date %}selected{% endif %}>
+                                    {{ program.program_title }} - {{ program.program_date.strftime('%d %b, %Y') }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #003366; color: white;">
+                <h4 class="mb-0">{{ session.program_title }} - {{ session.program_date.strftime('%d %b, %Y') }}</h4>
+                <div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Export Data
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('ciro.export_detail', program_title=program_title, program_date=program_date) }}">Export All Responses</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('ciro.export_summary_report', program_title=program_title, program_date=program_date) }}">Export Summary Report</a></li>
+                        </ul>
+                    </div>
+                    <a href="{{ url_for('ciro.dashboard') }}" class="btn btn-light ms-2">Back to Dashboard</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Responses</h5>
+                                <p class="card-text display-6">{{ session.response_count }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">CSI (Customer Satisfaction Index)</h5>
+                                <p class="card-text display-6 {% if session.csi >= 3.5 %}text-success{% elif session.csi >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ "%.2f"|format(session.csi) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">TFI (Trainer Feedback Index)</h5>
+                                <p class="card-text display-6 {% if session.tfi >= 3.5 %}text-success{% elif session.tfi >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ "%.2f"|format(session.tfi) if session.tfi else '-' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Average Score</h5>
+                                <p class="card-text display-6 {% if session.avg_score >= 3.5 %}text-success{% elif session.avg_score >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ "%.2f"|format(session.avg_score) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trainer Feedback -->
+                <div class="card mb-4">
+                    <div class="card-header" style="background-color: #f8f9fa;">
+                        <h5 class="mb-0">Trainer Feedback</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if trainers %}
+                        <div class="row">
+                            {% for trainer in trainers %}
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">{{ trainer.trainer_name }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary">Subject Knowledge</span>
+                                            <span class="float-end {% if trainer.q1_avg >= 3.5 %}text-success{% elif trainer.q1_avg >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ "%.2f"|format(trainer.q1_avg) }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary">Explanation Skill</span>
+                                            <span class="float-end {% if trainer.q2_avg >= 3.5 %}text-success{% elif trainer.q2_avg >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ "%.2f"|format(trainer.q2_avg) }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary">Doubt Clarification</span>
+                                            <span class="float-end {% if trainer.q3_avg >= 3.5 %}text-success{% elif trainer.q3_avg >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ "%.2f"|format(trainer.q3_avg) }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary">Overall Opinion</span>
+                                            <span class="float-end {% if trainer.q4_avg >= 3.5 %}text-success{% elif trainer.q4_avg >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ "%.2f"|format(trainer.q4_avg) }}
+                                            </span>
+                                        </div>
+                                        <hr>
+                                        <div>
+                                            <span class="badge bg-primary">Average Score</span>
+                                            <span class="float-end {% if (trainer.q1_avg + trainer.q2_avg + trainer.q3_avg + trainer.q4_avg)/4 >= 3.5 %}text-success{% elif (trainer.q1_avg + trainer.q2_avg + trainer.q3_avg + trainer.q4_avg)/4 >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                                {{ "%.2f"|format((trainer.q1_avg + trainer.q2_avg + trainer.q3_avg + trainer.q4_avg)/4) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No trainer feedback available for this session.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Individual Responses -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                        <h5 class="mb-0">Individual Responses ({{ individual_responses|length }})</h5>
+                        <div>
+                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search responses..." onkeyup="filterResponses()">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="responsesAccordion">
+                            {% for response in individual_responses %}
+                            <div class="accordion-item response-item" data-name="{{ response.participants_name|lower }}" data-id="{{ response.per_no|lower }}">
+                                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" 
+                                            aria-controls="collapse{{ loop.index }}">
+                                        {{ response.participants_name }} ({{ response.per_no }}) - 
+                                        <span class="ms-2 {% set csi = (response.sec1_q1 + response.sec1_q2 + response.sec2_q1 + response.sec2_q2 + response.sec2_q3 + response.sec3_q1 + response.sec5_q1 + response.sec5_q2 + response.sec6_q1 + response.sec6_q2 + response.sec7_q1 + response.sec7_q2)/12.0 %} 
+                                        {% if csi >= 3.5 %}text-success{% elif csi >= 2.5 %}text-warning{% else %}text-danger{% endif %}">
+                                            CSI: {{ "%.2f"|format(csi) }}
+                                        </span>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
+                                     aria-labelledby="heading{{ loop.index }}" data-bs-parent="#responsesAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>Trainee Information</h6>
+                                                <table class="table table-sm">
+                                                    <tr><th>Name:</th><td>{{ response.participants_name }}</td></tr>
+                                                    <tr><th>Personal No.:</th><td>{{ response.per_no }}</td></tr>
+                                                    <tr><th>BC No.:</th><td>{{ response.bc_no }}</td></tr>
+                                                    <tr><th>Department:</th><td>{{ response.department }}</td></tr>
+                                                    <tr><th>Factory:</th><td>{{ response.factory }}</td></tr>
+                                                    <tr><th>Submitted At:</th><td>{{ response.created_at.strftime('%Y-%m-%d %H:%M') if response.created_at else 'N/A' }}</td></tr>
+                                                </table>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Contact Information</h6>
+                                                <table class="table table-sm">
+                                                    <tr><th>Phone:</th><td>{{ response.phone }}</td></tr>
+                                                    <tr><th>Senior Name:</th><td>{{ response.senior_name }}</td></tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Trainer Feedback -->
+                                        {% if response.trainer1_name or response.trainer2_name or response.trainer3_name or response.trainer4_name %}
+                                        <div class="mt-3">
+                                            <h6>Trainer Feedback</h6>
+                                            <div class="row">
+                                                {% if response.trainer1_name %}
+                                                <div class="col-md-3">
+                                                    <div class="card">
+                                                        <div class="card-header bg-light">
+                                                            <strong>{{ response.trainer1_name }}</strong>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p>Subject Knowledge: {{ response.trainer1_q1 or '-' }}</p>
+                                                            <p>Explanation Skill: {{ response.trainer1_q2 or '-' }}</p>
+                                                            <p>Doubt Clarification: {{ response.trainer1_q3 or '-' }}</p>
+                                                            <p>Overall Opinion: {{ response.trainer1_q4 or '-' }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                {% if response.trainer2_name %}
+                                                <div class="col-md-3">
+                                                    <div class="card">
+                                                        <div class="card-header bg-light">
+                                                            <strong>{{ response.trainer2_name }}</strong>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p>Subject Knowledge: {{ response.trainer2_q1 or '-' }}</p>
+                                                            <p>Explanation Skill: {{ response.trainer2_q2 or '-' }}</p>
+                                                            <p>Doubt Clarification: {{ response.trainer2_q3 or '-' }}</p>
+                                                            <p>Overall Opinion: {{ response.trainer2_q4 or '-' }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                {% if response.trainer3_name %}
+                                                <div class="col-md-3">
+                                                    <div class="card">
+                                                        <div class="card-header bg-light">
+                                                            <strong>{{ response.trainer3_name }}</strong>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p>Subject Knowledge: {{ response.trainer3_q1 or '-' }}</p>
+                                                            <p>Explanation Skill: {{ response.trainer3_q2 or '-' }}</p>
+                                                            <p>Doubt Clarification: {{ response.trainer3_q3 or '-' }}</p>
+                                                            <p>Overall Opinion: {{ response.trainer3_q4 or '-' }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                {% if response.trainer4_name %}
+                                                <div class="col-md-3">
+                                                    <div class="card">
+                                                        <div class="card-header bg-light">
+                                                            <strong>{{ response.trainer4_name }}</strong>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <p>Subject Knowledge: {{ response.trainer4_q1 or '-' }}</p>
+                                                            <p>Explanation Skill: {{ response.trainer4_q2 or '-' }}</p>
+                                                            <p>Doubt Clarification: {{ response.trainer4_q3 or '-' }}</p>
+                                                            <p>Overall Opinion: {{ response.trainer4_q4 or '-' }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Text Feedback -->
+                                        <div class="mt-3">
+                                            <h6>Text Feedback</h6>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <p><strong>Most Relevant Topics:</strong></p>
+                                                    <p>{{ response.sec7_q3_text or 'Not Available' }}</p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <p><strong>Missing Topics:</strong></p>
+                                                    <p>{{ response.sec7_q4_text or 'Not Available' }}</p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <p><strong>Suggestions:</strong></p>
+                                                    <p>{{ response.suggestions or 'Not Available' }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 text-center" style="background-color: #003366; color: white;">
+        <div class="container">
+            <p class="mb-0">Tata Motors, Pune © {{ now.year if now else '2025' }} | All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterResponses() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const responseItems = document.getElementsByClassName('response-item');
+            
+            for (let i = 0; i < responseItems.length; i++) {
+                const name = responseItems[i].getAttribute('data-name');
+                const id = responseItems[i].getAttribute('data-id');
+                
+                if (name.includes(filter) || id.includes(filter)) {
+                    responseItems[i].style.display = '';
+                } else {
+                    responseItems[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
